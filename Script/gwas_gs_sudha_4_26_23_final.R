@@ -51,6 +51,10 @@ gs_mas = function(h2, NQTN){
   sig_snps = myGD[,(sig_snps_pos)]
   myQTN <- cbind(gwas_blink$PCA,sig_snps )
   
+  #thresh = 0.05/length(gwas_blink$GWAS$P.value)
+  #index = order(gwas_blink$GWAS$P.value, decreasing = F)
+  #myQTN=cbind(gwas_blink$PCA, myGD[index[1:15]])
+
   # MAS using the markers from blink (glm)
   
   mas_blink <- GAPIT(
@@ -249,9 +253,12 @@ head(df_split_1)
 write.csv(df_split_1, 'final_correlation_results_statgenomics.csv')
 
 
-jpeg('boxplot_correlation_only.jpg',width=12,height=10,units='in',res=300)
+jpeg('boxplot_correlation_only.jpg',width=12,height=8,units='in',res=300)
 d = ggplot(df_split_1)+
-  geom_boxplot(aes(x = x_ordered, y = correlation, color = dataset_ordered), size = 2)+
+  geom_point(aes(x = as.numeric(no_QTN), y = correlation, 
+                color = dataset_ordered), color = 'black',size = 2)+
+  geom_line(aes(x = as.numeric(no_QTN), y = correlation, 
+                color = dataset_ordered), size = 1)+
   facet_grid(Method~heritablity)+
   scale_colour_manual(values = c("tomato",'darkolivegreen4'))+
   xlab('No. of QTNs')+ ylab('Correlation')+
@@ -266,11 +273,14 @@ dev.off()
 
 
 
-jpeg('boxplot_standarddeviation_only.jpg',width=12,height=10,units='in',res=300)
+jpeg('boxplot_standarddeviation_only.jpg',width=12,height=8,units='in',res=300)
 d = ggplot(df_split_1)+
-  geom_boxplot(aes(x = x_ordered, y = sd, color = dataset_ordered), size =2)+
+  geom_point(aes(x = as.numeric(no_QTN), y = sd, 
+                 color = dataset_ordered), color = 'black',size = 2)+
+  geom_line(aes(x = as.numeric(no_QTN), y = sd, 
+                color = dataset_ordered), size = 1)+
   facet_grid(Method~heritablity)+
-  scale_colour_manual(values = c("tomato",'darkolivegreen4'))+
+  #scale_colour_manual(values = c("tomato",'darkolivegreen4'))+
   xlab('No. of QTNs')+ ylab('Standard deviation')+
   theme(strip.text.x = element_text(size = 14),
         strip.text.y = element_text(size = 14),
@@ -278,8 +288,47 @@ d = ggplot(df_split_1)+
         legend.title = element_text(size =14))+
   guides(color = guide_legend('dataset', override.aes = list(alpha =1)))
 d
+dev.off()
+
+
+
+jpeg('boxplot_correlation_only.jpg',width=12,height=8,units='in',res=300)
+d = ggplot(df_split_1)+
+  geom_point(aes(x = as.numeric(no_QTN), y = correlation, 
+                 color = Method), color = 'black',size = 2)+
+  geom_line(aes(x = as.numeric(no_QTN), y = correlation, 
+                color = Method), size = 1)+
+  facet_grid(dataset_ordered~heritablity)+
+  #scale_colour_manual(values = c("tomato",'darkolivegreen4'))+
+  xlab('No. of QTNs')+ ylab('Correlation')+
+  theme(strip.text.x = element_text(size = 14),
+        strip.text.y = element_text(size = 14),
+        legend.text = element_text(size =12),
+        legend.title = element_text(size =14))+
+  guides(color = guide_legend('Method', override.aes = list(alpha =1)))
+d
 
 dev.off()
+
+
+
+jpeg('boxplot_standarddeviation_only.jpg',width=12,height=8,units='in',res=300)
+d = ggplot(df_split_1)+
+  geom_point(aes(x = as.numeric(no_QTN), y = sd, 
+                 color = Method), color = 'black',size = 2)+
+  geom_line(aes(x = as.numeric(no_QTN), y = sd, 
+                color = Method), size = 1)+
+  facet_grid(dataset_ordered~heritablity)+
+  #scale_colour_manual(values = c("tomato",'darkolivegreen4'))+
+  xlab('No. of QTNs')+ ylab('Standard deviation')+
+  theme(strip.text.x = element_text(size = 14),
+        strip.text.y = element_text(size = 14),
+        legend.text = element_text(size =12),
+        legend.title = element_text(size =14))+
+  guides(color = guide_legend('Method', override.aes = list(alpha =1)))
+d
+dev.off()
+
 
 
 
@@ -315,6 +364,14 @@ pred.inf=as.matrix(myGD[test,-1])%*%myBGLR$ETA[[2]]$b
 ru2 <- cor(mySim$u[test],pred.inf)^2
 plot(mySim$u[test],pred.inf)
 mtext(paste("R square=",ru2,sep=""), side = 3)
+
+
+#df_wide <- df_split_1 %>% 
+  #pivot_wider(names_from = Method, values_from = c(correlation, sd)) %>% 
+ # select(-contains("dataset"))
+
+#dim(df_wide)
+#write.csv(df_wide, 'df_wide.csv')
 
 
 
